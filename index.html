@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kyomu Code</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --p3-primary-blue: #0A3D91;
+            --p3-light-blue: #5C8AE6;
+            --p3-bg-dark: #00020A;
+            --p3-black: #000000;
+            --p3-white: #F4F6FB;
+            --p3-text-gray: #A0ABC0;
+            --p3-accent: #1fd1f9;
+        }
+
+        body, html { margin: 0; padding: 0; height: 100%; background-color: var(--p3-bg-dark); color: var(--p3-white); font-family: 'Montserrat', sans-serif; overflow: hidden; }
+
+        .view-container::-webkit-scrollbar { width: 10px; }
+        .view-container::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.5); }
+        .view-container::-webkit-scrollbar-thumb { background: var(--p3-primary-blue); border: 2px solid var(--p3-bg-dark); }
+        .view-container::-webkit-scrollbar-thumb:hover { background: var(--p3-light-blue); }
+
+        .top-nav-container { position: absolute; top: 20px; left: 20px; z-index: 999; display: flex; gap: 15px; flex-wrap: wrap; max-width: 90vw; }
+        .nav-tab { background-color: var(--p3-primary-blue); color: var(--p3-white); text-decoration: none; padding: 12px 30px; font-size: 1.1rem; font-weight: 900; font-style: italic; text-transform: uppercase; transform: skew(-20deg); border: 3px solid var(--p3-light-blue); box-shadow: 6px 6px 0px var(--p3-black); transition: all 0.2s ease; display: inline-block; cursor: pointer; position: relative; }
+        .nav-tab span { display: inline-block; transform: skew(20deg); letter-spacing: 2px; }
+        .nav-tab.active { background-color: var(--p3-white); color: var(--p3-primary-blue); border-color: var(--p3-primary-blue); }
+        .nav-tab:hover:not(.active) { background-color: var(--p3-light-blue); border-color: var(--p3-white); box-shadow: 6px 6px 0px var(--p3-primary-blue); }
+
+        .view-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease; overflow-y: auto; overflow-x: hidden; padding-bottom: 60px; }
+        .view-container.active { opacity: 1; visibility: visible; pointer-events: auto; z-index: 10; }
+
+        .container { position: relative; display: flex; min-height: 100%; width: 100%; padding: 100px 40px 40px 40px; box-sizing: border-box; }
+
+        .decor-line { position: fixed; background-color: var(--p3-primary-blue); z-index: 0; pointer-events: none; }
+        .line-1 { top: 15%; right: -100px; width: 400px; height: 8px; transform: rotate(-35deg); box-shadow: 0 0 10px rgba(10, 61, 145, 0.5); }
+        .line-2 { bottom: 10%; left: -50px; width: 300px; height: 15px; transform: rotate(-35deg); background-color: var(--p3-light-blue); }
+        .bg-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg); font-size: 20vw; font-weight: 900; color: rgba(255, 255, 255, 0.02); z-index: 0; pointer-events: none; white-space: nowrap; }
+
+        /* INICIO */
+        .profile-container { flex: 1.2; display: flex; flex-direction: column; justify-content: center; padding-left: 20px; position: relative; z-index: 5; }
+        .profile-image-wrapper { width: 450px; height: 280px; overflow: hidden; transform: skew(-15deg); border: 5px solid var(--p3-white); box-shadow: 15px 15px 0px var(--p3-primary-blue); margin-bottom: 40px; background-color: var(--p3-black); }
+        .profile-image { width: 120%; height: 120%; object-fit: cover; transform: skew(15deg) translate(-10%, -10%); opacity: 0.9; }
+        .name-title { font-size: 6rem; font-weight: 900; font-style: italic; text-transform: uppercase; color: var(--p3-white); text-shadow: 5px 5px 0px var(--p3-primary-blue), 8px 8px 0px var(--p3-black); margin: 0; line-height: 0.9; letter-spacing: 4px; }
+        .subtitle { font-size: 1.3rem; font-weight: 700; color: var(--p3-light-blue); margin-top: 15px; text-transform: uppercase; letter-spacing: 2px; background-color: var(--p3-black); display: inline-block; padding: 5px 10px; transform: skew(-10deg); }
+        .subtitle span { display: inline-block; transform: skew(10deg); }
+        .quote { margin-top: 25px; font-size: 1rem; font-style: italic; color: var(--p3-text-gray); max-width: 550px; border-left: 4px solid var(--p3-light-blue); padding-left: 20px; line-height: 1.5; }
+        .bio { margin-top: 25px; font-size: 1.1rem; max-width: 550px; line-height: 1.6; font-weight: 400; }
+        .menu-container { flex: 0.8; display: flex; flex-direction: column; justify-content: center; align-items: flex-end; padding-right: 40px; z-index: 5; }
+        .menu-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 25px; width: 100%; max-width: 450px; }
+        .menu-link { display: block; padding: 20px 40px; background-color: transparent; color: var(--p3-white); text-decoration: none; font-size: 1.8rem; font-weight: 900; font-style: italic; text-transform: uppercase; text-align: right; border: 3px solid transparent; transition: all 0.3s ease; position: relative; z-index: 2; transform: skew(-20deg); overflow: hidden; letter-spacing: 2px; }
+        .menu-link::before { content: ''; position: absolute; top: 0; left: -100%; right: 0; bottom: 0; background-color: var(--p3-primary-blue); z-index: -1; transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .menu-link:hover { color: var(--p3-white); border-color: var(--p3-light-blue); box-shadow: 8px 8px 0px var(--p3-black); padding-right: 50px; text-shadow: 2px 2px 0px var(--p3-black); }
+        .menu-link:hover::before { left: 0; }
+
+        /* COMÚN SECCIONES */
+        .content-wrapper { width: 100%; max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; z-index: 5; position: relative; padding-bottom: 80px; }
+        .section-title { font-size: 3rem; font-weight: 900; font-style: italic; text-transform: uppercase; color: var(--p3-white); text-shadow: 4px 4px 0px var(--p3-primary-blue); margin: 0 0 10px 0; border-bottom: 5px solid var(--p3-light-blue); padding-bottom: 10px; display: inline-block; transform: skew(-10deg); align-self: flex-start; }
+        .section-title span { display: inline-block; transform: skew(10deg); }
+        .section-title.sub { font-size: 2.2rem; margin-top: 40px; border-bottom: 3px solid var(--p3-accent); text-shadow: 3px 3px 0px var(--p3-primary-blue); }
+
+        .card-box { background: rgba(10, 61, 145, 0.2); border-left: 8px solid var(--p3-light-blue); padding: 30px; position: relative; overflow: hidden; transform: translateX(-50px); opacity: 0; pointer-events: auto; backdrop-filter: blur(5px); }
+        .view-container.active .card-box { animation: slideInBox 0.5s forwards ease-out; }
+        .view-container.active .card-box:nth-of-type(1) { animation-delay: 0.1s; }
+        .view-container.active .card-box:nth-of-type(2) { animation-delay: 0.2s; }
+        .view-container.active .card-box:nth-of-type(3) { animation-delay: 0.3s; }
+        .view-container.active .card-box:nth-of-type(4) { animation-delay: 0.4s; }
+        .view-container.active .card-box:nth-of-type(5) { animation-delay: 0.5s; }
+        @keyframes slideInBox { to { transform: translateX(0); opacity: 1; } }
+        .card-box::after { content: ''; position: absolute; top: -50%; right: -50%; width: 100px; height: 200%; background: rgba(255, 255, 255, 0.05); transform: rotate(35deg); pointer-events: none; }
+
+        .card-header { display: flex; align-items: baseline; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .card-title { font-size: 2rem; font-weight: 800; color: var(--p3-accent); margin: 0; }
+        .card-tag { font-style: italic; font-size: 1rem; color: var(--p3-text-gray); background: var(--p3-black); padding: 2px 10px; }
+        .card-desc { font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; color: var(--p3-white); }
+        
+        .custom-list { margin: 10px 0 15px 30px; padding: 0; color: var(--p3-light-blue); font-size: 1.1rem; }
+        .custom-list li { margin-bottom: 8px; font-style: italic; }
+        .custom-list li span { color: var(--p3-white); font-style: normal; }
+
+        .link-group { display: flex; flex-wrap: wrap; gap: 15px; }
+        .link-btn { color: var(--p3-white); background: var(--p3-primary-blue); text-decoration: none; padding: 8px 20px; font-weight: bold; display: inline-block; transform: skew(-15deg); transition: all 0.2s; position: relative; z-index: 10; border: 2px solid transparent; }
+        .link-btn span { display: inline-block; transform: skew(15deg); }
+        .link-btn:hover { background: var(--p3-white); color: var(--p3-primary-blue); border-color: var(--p3-primary-blue); box-shadow: 4px 4px 0px var(--p3-light-blue); }
+
+        /* TAGS Y GUSTOS (SOBRE MI) */
+        .taste-category { margin-bottom: 25px; }
+        .taste-category h3 { color: var(--p3-light-blue); font-style: italic; font-size: 1.5rem; margin: 0 0 15px 0; border-bottom: 1px dashed var(--p3-primary-blue); padding-bottom: 5px; }
+        .tag-container { display: flex; flex-wrap: wrap; gap: 10px; }
+        .tag-item { background-color: var(--p3-primary-blue); color: var(--p3-white); padding: 5px 15px; font-weight: 700; font-size: 1rem; transform: skew(-10deg); border-right: 3px solid var(--p3-accent); text-decoration: none; display: inline-block; transition: all 0.2s; }
+        .tag-item span { display: inline-block; transform: skew(10deg); }
+        a.tag-item:hover { background-color: var(--p3-white); color: var(--p3-black); border-right-color: var(--p3-primary-blue); }
+        .tag-text { background-color: var(--p3-black); border-right: 3px solid var(--p3-text-gray); }
+
+        /* STATS (APRENDIZAJE) */
+        .stat-grid { display: grid; grid-template-columns: 100px 1fr; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .stat-label { font-weight: 800; color: var(--p3-accent); text-align: right; font-style: italic; }
+        .stat-value { color: var(--p3-white); }
+
+        /* TRANSICIÓN P3R */
+        .transition-overlay { position: fixed; top: 0; left: -250vw; width: 200vw; height: 100vh; background-color: var(--p3-black); z-index: 9999; transform: skewX(-25deg); transform-origin: top left; display: flex; align-items: center; justify-content: center; pointer-events: none; visibility: hidden; }
+        .transition-overlay::before { content: ''; position: absolute; top: 0; left: 100%; width: 50vw; height: 100%; background-color: var(--p3-primary-blue); border-left: 10px solid var(--p3-accent); }
+        .transition-text { color: var(--p3-white); font-size: 8rem; font-weight: 900; font-style: italic; text-transform: uppercase; transform: skewX(25deg); opacity: 0; text-shadow: 10px 10px 0 var(--p3-primary-blue); text-align: center; }
+        .transition-active .transition-overlay { visibility: visible; animation: wipeIn 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards; }
+        .transition-active .transition-text { animation: flashText 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards; }
+        @keyframes wipeIn { 0% { left: -250vw; } 45% { left: -20vw; } 55% { left: -20vw; } 100% { left: 150vw; } }
+        @keyframes flashText { 0% { opacity: 0; transform: skewX(25deg) scale(0.8); } 45% { opacity: 1; transform: skewX(25deg) scale(1); } 55% { opacity: 1; transform: skewX(25deg) scale(1); } 100% { opacity: 0; transform: skewX(25deg) scale(1.2); } }
+
+    </style>
+</head>
+<body>
+    <div class="bg-text">CODE</div>
+    <div class="decor-line line-1"></div>
+    <div class="decor-line line-2"></div>
+
+    <nav class="top-nav-container">
+        <a href="javascript:void(0)" onclick="switchView('home-view', 'INICIO')" id="tab-home-view" class="nav-tab active"><span>Inicio</span></a>
+        <a href="javascript:void(0)" onclick="switchView('sobremi-view', 'SOBRE MÍ')" id="tab-sobremi-view" class="nav-tab"><span>Sobre Mí</span></a>
+        <a href="javascript:void(0)" onclick="switchView('aprendizaje-view', 'APRENDIZAJE')" id="tab-aprendizaje-view" class="nav-tab"><span>Aprendizaje</span></a>
+        <a href="javascript:void(0)" onclick="switchView('projects-view', 'PROYECTOS')" id="tab-projects-view" class="nav-tab"><span>Proyectos</span></a>
+    </nav>
+
+    <!-- VISTA 1: INICIO -->
+    <div id="home-view" class="view-container active">
+        <div class="container">
+            <div class="profile-container">
+                <div class="profile-image-wrapper">
+                    <img src="https://cdn.pfps.gg/banners/8341-persona-3.png" alt="Profile Banner" class="profile-image">
+                </div>
+                <h1 class="name-title">Code</h1>
+                <div class="subtitle">
+                    <span>Escritor ausente // Creador // Polifacético</span>
+                </div>
+                <div class="quote">
+                    "In the light men are crossing over lone shadows. Wearing veiled slight hopes for intimacy. Want to be close. To be close"
+                </div>
+                <div class="bio">
+                    ¡Buenas! Tengo muchos nombres (como Andromeda, Lotus, Raiku...). Explora mis enlaces principales a la derecha o las demás secciones en el menú superior.
+                </div>
+            </div>
+            <div class="menu-container">
+                <ul class="menu-list">
+                    <li class="menu-item"><a href="https://backloggd.com/u/AndromedaESP/" target="_blank" class="menu-link">Backloggd</a></li>
+                    <li class="menu-item"><a href="https://open.spotify.com/user/lbvd6hc3iwwuaa3s5wzc536qr?si=1e0c98741bd24dd7" target="_blank" class="menu-link">Spotify</a></li>
+                    <li class="menu-item"><a href="https://anilist.co/user/CodebreakerESP/animelist" target="_blank" class="menu-link">Anilist</a></li>
+                    <li class="menu-item"><a href="https://rateyourmusic.com/~LotusCodeESP" target="_blank" class="menu-link">RateMyMusic</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA 2: SOBRE MI -->
+    <div id="sobremi-view" class="view-container">
+        <div class="container" style="display: block;">
+            <div class="content-wrapper">
+                <h2 class="section-title"><span>Sobre Mí</span></h2>
+                
+                <div class="card-box">
+                    <div class="card-header">
+                        <h3 class="card-title">🌟 Gustos e Intereses</h3>
+                    </div>
+                    
+                    <div class="taste-category">
+                        <h3>Géneros Musicales</h3>
+                        <div class="tag-container">
+                            <a href="https://rateyourmusic.com/release/album/the-pharcyde/labcabincalifornia/" target="_blank" class="tag-item"><span>Hip Hop</span></a>
+                            <a href="https://rateyourmusic.com/release/album/radiohead/in-rainbows/" target="_blank" class="tag-item"><span>Rock Alternativo</span></a>
+                            <a href="https://rateyourmusic.com/release/album/flying-lotus/cosmogramma/" target="_blank" class="tag-item"><span>IDM</span></a>
+                            <a href="https://rateyourmusic.com/release/album/nujabes/metaphorical-music/" target="_blank" class="tag-item"><span>Jazz Rap</span></a>
+                            <a href="https://rateyourmusic.com/song/afel-bocoum-damon-albarn-toumani-diabate/sunset-coming-on/" target="_blank" class="tag-item"><span>World</span></a>
+                            <a href="https://rateyourmusic.com/release/album/gorillaz/gorillaz/" target="_blank" class="tag-item"><span>Trip Hop</span></a>
+                        </div>
+                    </div>
+
+                    <div class="taste-category">
+                        <h3>Géneros Audiovisuales</h3>
+                        <div class="tag-container">
+                            <span class="tag-item tag-text"><span>Animación</span></span>
+                            <span class="tag-item tag-text"><span>Ciencia Ficción</span></span>
+                            <span class="tag-item tag-text"><span>Anime</span></span>
+                            <span class="tag-item tag-text"><span>Misterio</span></span>
+                            <span class="tag-item tag-text"><span>Terror</span></span>
+                        </div>
+                    </div>
+
+                    <div class="taste-category">
+                        <h3>Géneros de Videojuegos</h3>
+                        <div class="tag-container">
+                            <a href="https://backloggd.com/u/AndromedaESP/list/juegos-de-terror-indies-pendiente/" target="_blank" class="tag-item"><span>Terror</span></a>
+                            <span class="tag-item tag-text"><span>JRPGs</span></span>
+                            <span class="tag-item tag-text"><span>Aventura</span></span>
+                            <span class="tag-item tag-text"><span>Sandbox</span></span>
+                        </div>
+                    </div>
+
+                    <div class="taste-category">
+                        <h3>Generales</h3>
+                        <div class="tag-container">
+                            <a href="https://www.reddit.com/r/learnprogramming/wiki/faq/" target="_blank" class="tag-item"><span>Informática (Programación)</span></a>
+                            <a href="https://videojuegos.fandom.com/es/wiki/Wikijuegos:Portada" target="_blank" class="tag-item"><span>Videojuegos</span></a>
+                            <a href="https://music.fandom.com/wiki/Music_Hub" target="_blank" class="tag-item"><span>Música</span></a>
+                        </div>
+                    </div>
+
+                    <div class="taste-category">
+                        <h3>Series Animadas</h3>
+                        <div class="tag-container">
+                            <span class="tag-item tag-text"><span>The Owl House</span></span>
+                            <span class="tag-item tag-text"><span>Amphibia</span></span>
+                            <span class="tag-item tag-text"><span>Code Lyoko</span></span>
+                            <span class="tag-item tag-text"><span>Futurama</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA 3: APRENDIZAJE -->
+    <div id="aprendizaje-view" class="view-container">
+        <div class="container" style="display: block;">
+            <div class="content-wrapper">
+                <h2 class="section-title"><span>Aprendizaje</span></h2>
+                
+                <div class="quote" style="margin-left:0; max-width:100%;">
+                    "Multifacetico: Una persona multifacética es aquella que realiza múltiples actividades, tiene diversas habilidades o destrezas. También puede ser alguien que se caracteriza por tener diferentes facetas de su personalidad."
+                </div>
+
+                <h2 class="section-title sub"><span>Lo que estoy aprendiendo actualmente</span></h2>
+
+                <div class="card-box">
+                    <div class="card-header">
+                        <h3 class="card-title">🗣️ Idiomas</h3>
+                    </div>
+                    <div class="card-desc">
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: var(--p3-light-blue); margin: 0 0 10px 0; font-style: italic;">Inglés</h4>
+                            <div class="stat-grid">
+                                <span class="stat-label">Actual:</span> <span class="stat-value">Nivel A2 (Básico Avanzado)</span>
+                                <span class="stat-label">Objetivo:</span> <span class="stat-value">Nivel B1 (Intermedio)</span>
+                                <span class="stat-label">Prioridad:</span> <span class="stat-value" style="color: #FACC15;">Media</span>
+                            </div>
+                        </div>
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: var(--p3-light-blue); margin: 0 0 10px 0; font-style: italic;">Japonés</h4>
+                            <div class="stat-grid">
+                                <span class="stat-label">Actual:</span> <span class="stat-value">Nada</span>
+                                <span class="stat-label">Objetivo:</span> <span class="stat-value">Nivel N5 (Básico)</span>
+                                <span class="stat-label">Prioridad:</span> <span class="stat-value" style="color: #9CA3AF;">Baja</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--p3-light-blue); margin: 0 0 10px 0; font-style: italic;">Italiano</h4>
+                            <div class="stat-grid">
+                                <span class="stat-label">Actual:</span> <span class="stat-value">Nada</span>
+                                <span class="stat-label">Objetivo:</span> <span class="stat-value">Nivel A1 (Principiante)</span>
+                                <span class="stat-label">Prioridad:</span> <span class="stat-value" style="color: #9CA3AF;">Baja</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-box">
+                    <div class="card-header">
+                        <h3 class="card-title">💻 Programación</h3>
+                    </div>
+                    <div class="card-desc">
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: var(--p3-light-blue); margin: 0 0 10px 0; font-style: italic;">Python (en progreso)</h4>
+                            <div class="stat-grid">
+                                <span class="stat-label">Actual:</span> <span class="stat-value">Conocimientos basicos-avanzados (variables, if, else, objetos y lista)</span>
+                                <span class="stat-label">Objetivo:</span> <span class="stat-value">Aprender a refactorizar mejor</span>
+                                <span class="stat-label">Prioridad:</span> <span class="stat-value" style="color: #FACC15;">Media</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--p3-light-blue); margin: 0 0 10px 0; font-style: italic;">C# (en progreso)</h4>
+                            <div class="stat-grid">
+                                <span class="stat-label">Actual:</span> <span class="stat-value">Programación orientada a objetos + conocimiento basico-avanzado</span>
+                                <span class="stat-label">Objetivo:</span> <span class="stat-value">Aprender de formas intituiva</span>
+                                <span class="stat-label">Prioridad:</span> <span class="stat-value" style="color: #9CA3AF;">Baja</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-box">
+                    <div class="card-header">
+                        <h3 class="card-title">🎨 Arte</h3>
+                    </div>
+                    <div class="card-desc">
+                        <div style="margin-bottom: 10px;">
+                            <h4 style="color: var(--p3-light-blue); margin: 0 0 10px 0; font-style: italic;">Escritura</h4>
+                            <div class="stat-grid">
+                                <span class="stat-label">Actual:</span> <span class="stat-value">Sé escribir bien, pero debo mejorar</span>
+                                <span class="stat-label">Objetivo:</span> <span class="stat-value">Mejorar la escritura y aprender lengua castellana mejor</span>
+                                <span class="stat-label">Prioridad:</span> <span class="stat-value" style="color: #F87171;">Alta</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="section-title sub"><span>Lo que me gustaría aprender</span></h2>
+                <div class="card-box">
+                    <ul class="custom-list" style="columns: 2; column-gap: 40px;">
+                        <li><span>Dibujo y animación 2D</span></li>
+                        <li><span>Programación Javascript</span></li>
+                        <li><span>Programación HTML y CSS</span></li>
+                        <li><span>Historia (mitologías de distintas religiones)</span></li>
+                        <li><span>Producción musical con Reaper o FL Studio</span></li>
+                        <li><span>Hacer origami</span></li>
+                        <li><span>Desarrollo de videojuegos en Godot</span></li>
+                        <li><span>Escribir un guión</span></li>
+                        <li><span>Mejorar habilidades de programador</span></li>
+                        <li><span>Mecanografía</span></li>
+                        <li><span>Astronomía</span></li>
+                        <li><span>Desarrollo en RPG Maker</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA 4: PROYECTOS -->
+    <div id="projects-view" class="view-container">
+        <div class="container" style="display: block;">
+            <div class="content-wrapper">
+                <h2 class="section-title"><span>Proyectos Actuales</span></h2>
+                
+                <div class="card-box" style="border-left-color: #E53935; background: rgba(229, 57, 53, 0.1);">
+                    <div class="card-header">
+                        <h3 class="card-title" style="color: #E53935;">⚔️ Excalibur Eventos</h3>
+                        <span class="card-tag" style="color: #E53935;">Inactivo</span>
+                    </div>
+                    <div class="card-desc">
+                        Excalibur Eventos es una organizadora de eventos (y de creación de eventos) para streamers de todas las plataformas. Juntado de un equipo de streamers y no streamers, nuestro objetivo es crear nuevas experiencias para creadores de contenido como podcasts, concursos, torneos.
+                    </div>
+                    <div class="link-group">
+                        <span style="color: #E53935; font-weight: 900; font-style: italic; transform: skew(-15deg); display: inline-block; padding: 8px 20px; border: 2px dashed #E53935;"><span>Estamos en reformas</span></span>
+                    </div>
+                </div>
+
+                <div class="card-box">
+                    <div class="card-header">
+                        <h3 class="card-title">🌌 Andromeda</h3>
+                        <span class="card-tag">Activo en el 6 de junio</span>
+                    </div>
+                    <div class="card-desc">
+                        Andromeda es mi perfil de streamear/creador de contenido. En el canal de Twitch no hay tematica unica, hacemos reacciones a albumnes, jugamos a videojuegos e incluso hacemos cosas en directo como las reacciones de la Summer Game Fest. Por ahora manejo el canal de Twitch, proximamente manejaré mi canal principal con contenido exclusivo. Tambien tengo un canal donde subo los directos resubidos.
+                    </div>
+                    <div class="link-group">
+                        <a href="https://www.twitch.tv/andromedaesp" target="_blank" class="link-btn"><span>Twitch</span></a>
+                        <a href="https://www.youtube.com/@andromedattv" target="_blank" class="link-btn"><span>Youtube (Principal)</span></a>
+                        <a href="https://www.youtube.com/@AndromedaESPVODS" target="_blank" class="link-btn"><span>VODS</span></a>
+                    </div>
+                </div>
+
+                <!-- NUEVO PROYECTO: THE CLUB COMMUNITY -->
+                <div class="card-box">
+                    <div class="card-header" style="align-items: center; gap: 20px;">
+                        <img src="https://pbs.twimg.com/profile_images/1903106069594886144/MzmXhe1F_400x400.jpg" alt="The Club Logo" style="width: 60px; height: 60px; object-fit: cover; border: 3px solid var(--p3-accent); box-shadow: 4px 4px 0px var(--p3-black); transform: skew(-10deg);">
+                        <h3 class="card-title" style="margin:0;">The Club Community</h3>
+                        <span class="card-tag">Activo</span>
+                    </div>
+                    <div class="card-desc">
+                    Soy fundador, apoyo del Departamento de Inteligencia y además la parte creativa de The Club (creador de Hawklucha Champions League y Matching Lives). The Club es una comunidad de creación de contenido.
+                    </div>
+                    <div class="link-group">
+                        <a href="https://theclubcommunity.netlify.app/" target="_blank" class="link-btn"><span>Website</span></a>
+                        <a href="https://discord.gg/YZMr2vWbfn" target="_blank" class="link-btn"><span>Discord</span></a>
+                    </div>
+                </div>
+                <!-- FIN THE CLUB COMMUNITY -->
+
+
+                
+
+                <h2 class="section-title sub"><span>Proyectos futuros</span></h2>
+
+                <div class="card-box">
+                    <div class="card-header">
+                        <h3 class="card-title">🏁 Raiku Code</h3>
+                        <span class="card-tag">Próximamente</span>
+                    </div>
+                    <div class="card-desc">
+                        Raiku Code es un canal de YouTube que tengo pensado en cuál reseñaré series y peliculas animadas junto a videojuegos. La idea se hará cuando aprenda a mejorar mis habilidades de edición (y me vea las series con calma).
+                    </div>
+                    <div class="link-group">
+                        <a href="https://www.youtube.com/@raikucode9803" target="_blank" class="link-btn"><span>YouTube</span></a>
+                    </div>
+                </div>
+
+                <div class="card-box">
+                    <div class="card-header">
+                        <h3 class="card-title">📝 Lotus Code</h3>
+                        <span class="card-tag">2026</span>
+                    </div>
+                    <div class="card-desc">
+                        Lotus Code es una cuenta donde escribo libros y fanfics sobre series animadas. Lo deje de lado debido a que no he tenido tiempo, pero quisiera retomarlo como un nuevo proyecto que podria hacer eventualmente en el proximo año. Entre los libros que debo continuar son:
+                        <ul class="custom-list">
+                            <li><span>Killer Moral (reescritura)</span></li>
+                            <li><span>La canción de la Misfortunia (precuela + continuar el fanfic)</span></li>
+                            <li><span>One-shots</span></li>
+                        </ul>
+                        Además, más adelante, con Lotus Code, me gustaria empezar a dibujar y hacer arte.
+                    </div>
+                    <div class="link-group">
+                        <a href="https://www.wattpad.com/user/WhiteLotusCode" target="_blank" class="link-btn"><span>Wattpad</span></a>
+                        <a href="https://archiveofourown.org/users/LotusCodeESP" target="_blank" class="link-btn"><span>AO3</span></a>
+                        <a href="https://www.fanfiction.net/~lotuscodeesp" target="_blank" class="link-btn"><span>FanFiction</span></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="transition-overlay" id="transition-overlay">
+        <div class="transition-text" id="transition-text">CARGANDO</div>
+    </div>
+
+    <script>
+        let isAnimating = false;
+        function switchView(targetViewId, transitionTextStr) {
+            if (isAnimating) return;
+            const currentView = document.querySelector('.view-container.active');
+            const targetView = document.getElementById(targetViewId);
+            if (currentView.id === targetViewId) return;
+            isAnimating = true;
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById('tab-' + targetViewId).classList.add('active');
+            const tText = document.getElementById('transition-text');
+            
+            // Manejar texto largo como 'APRENDIZAJE'
+            if(transitionTextStr.length > 10) {
+                tText.style.fontSize = '5rem';
+            } else {
+                tText.style.fontSize = '8rem';
+            }
+            tText.textContent = transitionTextStr;
+            
+            document.body.classList.add('transition-active');
+            setTimeout(() => {
+                currentView.classList.remove('active');
+                targetView.classList.add('active');
+                targetView.scrollTo(0,0);
+            }, 400);
+            setTimeout(() => {
+                document.body.classList.remove('transition-active');
+                isAnimating = false;
+            }, 850);
+        }
+    </script>
+</body>
+</html>
